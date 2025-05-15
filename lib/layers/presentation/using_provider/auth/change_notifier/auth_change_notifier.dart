@@ -3,7 +3,6 @@ import 'package:chat_app/layers/domain/entity/auth.dart';
 import 'package:chat_app/layers/domain/usecase/login.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:toastification/toastification.dart';
 
 class AuthChangeNotifier extends ChangeNotifier {
   final Login _loginUseCase;

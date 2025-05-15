@@ -1,4 +1,5 @@
 import 'package:chat_app/layers/presentation/using_provider/auth/change_notifier/auth_change_notifier.dart';
+import 'package:chat_app/layers/presentation/widget/TextField.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toastification/toastification.dart';
@@ -8,83 +9,99 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authChangeNotifier = Provider.of<AuthChangeNotifier>(
-      context,
-      listen: true,
-    );
-    final usernameController = TextEditingController();
-    final passwordController = TextEditingController();
+    return Consumer<AuthChangeNotifier>(
+      builder: (context, authChangeNotifier, _) {
+        // Hiển thị toast khi có lỗi
+        if (authChangeNotifier.error != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            toastification.show(
+              context: context,
+              title: Text(authChangeNotifier.error!),
+              type: ToastificationType.error,
+              autoCloseDuration: const Duration(seconds: 5),
+            );
+          });
+        }
 
-    // Kiểm tra trạng thái error hoặc auth để hiển thị toast
-    if (authChangeNotifier.error != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        toastification.show(
-          context: context,
-          title: Text(authChangeNotifier.error!),
-          type: ToastificationType.error,
-          autoCloseDuration: const Duration(seconds: 5),
-        );
-      });
-    } else if (authChangeNotifier.auth != null &&
-        !authChangeNotifier.isLoading) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        toastification.show(
-          context: context,
-          title: const Text('Login successful'),
-          type: ToastificationType.success,
-          autoCloseDuration: const Duration(seconds: 5),
-        );
-      });
-    }
+        final usernameController = TextEditingController();
+        final passwordController = TextEditingController();
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: usernameController,
-              decoration: const InputDecoration(labelText: 'Username'),
-            ),
-            TextField(
-              controller: passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            if (authChangeNotifier.isLoading)
-              const CircularProgressIndicator()
-            else
-              ElevatedButton(
-                onPressed: () {
-                  final username = usernameController.text.trim();
-                  final password = passwordController.text.trim();
-                  if (username.isNotEmpty && password.isNotEmpty) {
-                    authChangeNotifier.login(username, password);
-                  } else {
-                    toastification.show(
-                      context: context,
-                      title: const Text('Please enter username and password'),
-                      type: ToastificationType.warning,
-                      autoCloseDuration: const Duration(seconds: 5),
-                    );
-                  }
-                },
-                child: const Text('Login'),
-              ),
-            if (authChangeNotifier.auth != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text(
-                  'Logged in! Token: ${authChangeNotifier.auth!.accessToken}',
-                  style: const TextStyle(color: Colors.green),
+        return Scaffold(
+          appBar: AppBar(title: const Text('Login')),
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image(
+                  image: const AssetImage('assets/lib/hello.png'),
+                  width: 300,
+                  height: 300,
+                  fit: BoxFit.contain,
                 ),
-              ),
-          ],
-        ),
-      ),
+                const SizedBox(height: 16),
+                customTextField(
+                  controller: usernameController,
+                  labelText: 'Email',
+                  color: Colors.black,
+                  obscureText: false,
+                  validate: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Enter your email';
+                    }
+                    final emailRegex = RegExp(
+                      r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+                    );
+                    if (!emailRegex.hasMatch(value)) {
+                      return 'Enter a valid email';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 8),
+                customTextField(
+                  controller: passwordController,
+                  labelText: 'Password',
+                  color: Colors.black,
+                  obscureText: true,
+                  validate: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Enter your password';
+                    }
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                if (authChangeNotifier.isLoading)
+                  const CircularProgressIndicator()
+                else
+                  ElevatedButton(
+                    onPressed: () {
+                      final username = usernameController.text.trim();
+                      final password = passwordController.text.trim();
+                      if (username.isNotEmpty && password.isNotEmpty) {
+                        authChangeNotifier.login(username, password);
+                      } else {
+                        toastification.show(
+                          context: context,
+                          title: const Text(
+                            'Please enter username and password',
+                          ),
+                          type: ToastificationType.warning,
+                          autoCloseDuration: const Duration(seconds: 5),
+                        );
+                      }
+                    },
+                    child: const Text('Login'),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
