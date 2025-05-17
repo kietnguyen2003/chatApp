@@ -40,12 +40,7 @@ dependencies:
   provider: ^6.1.5
   dio: ^5.8.0+1
   toastification: ^3.0.2
-  getwidget: ^2.0.4
   flutter_form_builder: ^10.0.1
-
-  chat_bubbles: ^1.7.0
-  audioplayers: ^6.4.0
-  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:

@@ -25,17 +25,22 @@ class LocalStorageImpl implements LocalStorage {
       final accessToken = auth.accessToken;
       final refreshToken = auth.refreshToken;
       final userId = auth.userId;
-      if (accessToken == null || refreshToken == null || userId == null) {
+      if (accessToken == null ||
+          accessToken.isEmpty ||
+          refreshToken == null ||
+          refreshToken.isEmpty ||
+          userId == null ||
+          userId.isEmpty) {
         return false;
       }
       await _sharedPref.setString(cachedAccessTokenKey, accessToken);
       await _sharedPref.setString(cachedRefreshTokenKey, refreshToken);
       await _sharedPref.setString(cachedUserIdKey, userId);
+      return true;
     } catch (e) {
-      print('Error saving tokens: $e');
+      // Sử dụng logger thay vì print
       return false;
     }
-    return true;
   }
 
   @override

@@ -10,6 +10,11 @@ class AuthDto {
   });
 
   factory AuthDto.fromJson(Map<String, dynamic> json) {
+    if (json['access_token'] == null ||
+        json['refresh_token'] == null ||
+        json['user_id'] == null) {
+      throw Exception('Invalid auth response');
+    }
     return AuthDto(
       token: json['access_token'],
       refreshToken: json['refresh_token'],

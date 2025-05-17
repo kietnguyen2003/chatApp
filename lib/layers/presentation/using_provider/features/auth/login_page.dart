@@ -1,11 +1,19 @@
-import 'package:chat_app/layers/presentation/using_provider/auth/change_notifier/auth_change_notifier.dart';
+import 'package:chat_app/layers/presentation/using_provider/features/auth/change_notifier/auth_change_notifier.dart';
 import 'package:chat_app/layers/presentation/widget/TextField.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toastification/toastification.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +30,6 @@ class LoginPage extends StatelessWidget {
             );
           });
         }
-
-        final usernameController = TextEditingController();
-        final passwordController = TextEditingController();
 
         return Scaffold(
           appBar: AppBar(title: const Text('Login')),
@@ -43,7 +48,7 @@ class LoginPage extends StatelessWidget {
                 customTextField(
                   controller: usernameController,
                   labelText: 'Email',
-                  color: Colors.black,
+                  color: Colors.blue,
                   obscureText: false,
                   validate: (value) {
                     if (value == null || value.isEmpty) {
@@ -62,7 +67,7 @@ class LoginPage extends StatelessWidget {
                 customTextField(
                   controller: passwordController,
                   labelText: 'Password',
-                  color: Colors.black,
+                  color: Colors.blue,
                   obscureText: true,
                   validate: (value) {
                     if (value == null || value.isEmpty) {
