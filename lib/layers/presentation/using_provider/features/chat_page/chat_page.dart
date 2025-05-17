@@ -121,13 +121,59 @@ class _ChatPageState extends State<ChatPage> {
         final message = chatChangeNotifier.messages[index];
         // Format the message to convert bolded text to uppercase
         final formattedMessage = formatResponse(message.message);
-        return ListTile(
-          title: Text(formattedMessage),
-          subtitle: Text(message.name),
-          trailing:
+        return Align(
+          alignment:
               message.isUser == IsUser.sender
-                  ? const Icon(Icons.person)
-                  : const Icon(Icons.android),
+                  ? Alignment.centerRight
+                  : Alignment.centerLeft,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+            child: Column(
+              crossAxisAlignment:
+                  message.isUser == IsUser.sender
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  message.isUser == IsUser.sender
+                      ? Icons.person
+                      : Icons.android,
+                  color:
+                      message.isUser == IsUser.sender
+                          ? Colors.blue
+                          : Colors.green,
+                ),
+                Text(
+                  message.name,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color:
+                        message.isUser == IsUser.sender
+                            ? Colors.blue
+                            : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    formattedMessage,
+                    style: TextStyle(
+                      color:
+                          message.isUser == IsUser.sender
+                              ? Colors.white
+                              : Colors.black,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
