@@ -26,7 +26,6 @@ class ConversationRepositoryImp extends ConversationRepository {
     List<Message> messages,
   ) async {
     try {
-      // Tạo request
       final List<MessageRequest> messageRequests;
       String? conversationId = await _localStorage.getConversationId();
       if (conversationId == null) {
@@ -51,12 +50,10 @@ class ConversationRepositoryImp extends ConversationRepository {
       if (accessToken == null) {
         throw Exception('No access token found');
       }
-      print("Message requests: $messageRequests");
       messages.add(
         Message(message: message, isUser: IsUser.sender, name: "User"),
       );
       try {
-        print("Step 4: send message at repository: $message");
         final response = await _api.post(
           ApiUrls.aiChat,
           {
@@ -65,7 +62,7 @@ class ConversationRepositoryImp extends ConversationRepository {
             'metadata': {
               'conversation': {
                 'messages': messageRequests.map((e) => e.toJson()).toList(),
-                'id': conversationId, // Điều chỉnh theo định dạng API
+                'id': conversationId,
               },
             },
             'assistant': {'id': bot.id, 'name': bot.name, 'model': bot.model},
@@ -75,7 +72,6 @@ class ConversationRepositoryImp extends ConversationRepository {
             'x-jarvis-guid': '',
           },
         );
-        print('Response from API: $response');
         final messageResponse = dto.MessageResponseDTO.fromJson(response);
         if (messageResponse.message.isEmpty) {
           throw Exception('Response message cannot be empty');
@@ -88,7 +84,6 @@ class ConversationRepositoryImp extends ConversationRepository {
         }
         return messageResponse.toDomain();
       } catch (e) {
-        print('Error in repository sendMessage: $e'); // Thêm log chi tiết
         if (e is DioException && e.response != null) {
           throw Exception(
             'Failed to send message: ${e.response?.data['message'] ?? e.message}',
@@ -97,7 +92,6 @@ class ConversationRepositoryImp extends ConversationRepository {
         throw Exception('Failed to send message: $e');
       }
     } catch (e) {
-      print('Error in repository: $e'); // Thêm log chi tiết
       if (e is DioException && e.response != null) {
         throw Exception(
           'Failed to send message: ${e.response?.data['message'] ?? e.message}',
@@ -112,7 +106,6 @@ class ConversationRepositoryImp extends ConversationRepository {
     String assistantId,
   ) async {
     try {
-      print('Fetching history for assistantId: $assistantId at repository');
       final accessToken = await _localStorage.getAccessToken();
       if (accessToken == null) {
         throw Exception('No access token found');
@@ -121,12 +114,10 @@ class ConversationRepositoryImp extends ConversationRepository {
         '${ApiUrls.aiChatHistory}?assistantId=$assistantId&assistantModel=dify',
         headers: {'Authorization': 'Bearer $accessToken'},
       );
-      print('Response from API: $response');
       final historyConversationsDTO = dto.HistoryConversationsDTO.fromJson(
         response,
       );
       final historyConversations = historyConversationsDTO.toDomain();
-      print('Mapped history conversations: $historyConversations');
       return historyConversations;
     } catch (e) {
       if (e is DioException && e.response != null) {
