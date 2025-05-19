@@ -1,5 +1,6 @@
 import 'package:chat_app/layers/data/source/local/local_storage.dart';
 import 'package:chat_app/layers/domain/entity/bot.dart';
+import 'package:chat_app/layers/domain/entity/conversation.dart';
 import 'package:chat_app/layers/domain/entity/messeage.dart';
 import 'package:chat_app/layers/domain/usecase/conversation.dart';
 import 'package:dio/dio.dart';
@@ -10,12 +11,17 @@ class ChatChangeNotifer extends ChangeNotifier {
   final LocalStorage _localStorage;
   final Conversation _conversationUseCase;
   final List<Message> _messages = [];
+  HistoryConversations _historyConversations = HistoryConversations(
+    items: [],
+    hasMore: false,
+  );
   bool _isLoading = false;
   String? _error;
 
   List<Message> get messages => _messages;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  HistoryConversations get historyConversations => _historyConversations;
 
   ChatChangeNotifer({
     required Conversation conversationUseCase,
@@ -28,12 +34,14 @@ class ChatChangeNotifer extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      _messages.add(
-        Message(message: message, isUser: IsUser.sender, name: "User"),
+      print("Step 2: send message at notifier: $message");
+      final response = await _conversationUseCase.sendMessage(
+        message,
+        bot,
+        _messages,
       );
-      final response = await _conversationUseCase.sendMessage(message, bot);
-      if (response != null) {
-        print('Response at notifier: ${response.message}');
+      print('Response from use case: ${response.message}');
+      if (response.message.isNotEmpty) {
         _messages.add(
           Message(
             message: response.message,
@@ -42,20 +50,47 @@ class ChatChangeNotifer extends ChangeNotifier {
           ),
         );
       } else {
-        _error = 'Failed to send message';
+        _error = 'Empty response message';
       }
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
+      print('Error in sendMessage: $e'); // Thêm log để debug
       if (e is DioException) {
+        print(
+          'DioException details: ${e.response?.data}, ${e.response?.statusCode}',
+        );
         if (e.response?.statusCode == 401) {
           _error = 'Invalid token';
         } else {
-          _error = 'Network error: ${e.message}';
+          _error = 'Network error: ${e.response?.data ?? e.message}';
         }
       } else {
         _error = 'Unexpected error: $e';
       }
-    } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> getHistoryConversations(String assistantId) async {
+    print('Fetching history conversations...');
+    _isLoading = true;
+    try {
+      final response = await _conversationUseCase.getHistoryConversationss(
+        assistantId,
+      );
+      print('Response at notifier: ${response}');
+      if (response != null) {
+        _isLoading = false;
+        _historyConversations = response;
+
+        print('History conversations fetched successfully');
+      } else {
+        throw Exception('Failed to fetch history conversations');
+      }
+    } catch (e) {
+      _error = 'Error fetching history: $e';
       notifyListeners();
     }
   }

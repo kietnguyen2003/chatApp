@@ -1,4 +1,3 @@
-import 'package:chat_app/layers/domain/entity/bot.dart';
 import 'package:equatable/equatable.dart';
 
 class MessageResponse with EquatableMixin {
@@ -21,22 +20,64 @@ class MessageResponse with EquatableMixin {
 }
 
 class MessageRequest with EquatableMixin {
+  final Map<String, String> assistant;
+  final String role;
   final String content;
-  final List<String> file;
-  final Map<String, dynamic> metadata;
-  final Bot assistant;
+  final List<String> files;
 
   const MessageRequest({
-    required this.content,
-    required this.file,
-    required this.metadata,
     required this.assistant,
+    required this.role,
+    required this.content,
+    required this.files,
   });
 
   @override
-  List<Object?> get props => [content, file, metadata, assistant];
+  List<Object?> get props => [assistant, role, content, files];
   @override
   String toString() {
-    return 'MessageRequest{content: $content, file: $file, metadata: $metadata, assistant: $assistant}';
+    return '{assistant: $assistant, role: $role, content: $content, files: $files}';
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'assistant': assistant,
+      'role': role,
+      'content': content,
+      'files': files,
+    };
+  }
+}
+
+class HistoryItem with EquatableMixin {
+  final String title;
+  final String id;
+  final String createdAt;
+
+  const HistoryItem({
+    required this.title,
+    required this.id,
+    required this.createdAt,
+  });
+
+  @override
+  List<Object?> get props => [title, id, createdAt];
+  @override
+  String toString() {
+    return 'HistoryItem{title: $title, id: $id, createdAt: $createdAt}';
+  }
+}
+
+class HistoryConversations with EquatableMixin {
+  final bool hasMore;
+  final List<HistoryItem> items;
+
+  const HistoryConversations({required this.hasMore, required this.items});
+
+  @override
+  List<Object?> get props => [hasMore, items];
+  @override
+  String toString() {
+    return 'HistoryConversations{hasMore: $hasMore, items: $items}';
   }
 }

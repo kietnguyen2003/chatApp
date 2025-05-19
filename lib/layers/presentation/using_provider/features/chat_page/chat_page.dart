@@ -1,5 +1,6 @@
 import 'package:chat_app/layers/data/source/local/botList.dart';
 import 'package:chat_app/layers/domain/entity/bot.dart';
+import 'package:chat_app/layers/domain/entity/conversation.dart';
 import 'package:chat_app/layers/domain/entity/messeage.dart';
 import 'package:chat_app/layers/presentation/using_provider/features/chat_page/chang_notifer/chat_change_notifer.dart';
 import 'package:chat_app/layers/presentation/widget/TextField.dart';
@@ -41,12 +42,26 @@ class _ChatPageState extends State<ChatPage> {
         actions: [
           PopupMenuButton(
             itemBuilder: (context) {
-              return [const PopupMenuItem(value: 1, child: Text('Logout'))];
+              return [
+                const PopupMenuItem(value: 1, child: Text('Logout')),
+                const PopupMenuItem(value: 2, child: Text('History')),
+              ];
             },
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 1) {
                 chatChangeNotifier.logout();
                 // Navigation handled in AppUsing tirProvider
+              } else if (value == 2) {
+                await chatChangeNotifier.getHistoryConversations(selectBotId);
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return buildHistoryDialog(
+                      context,
+                      chatChangeNotifier.historyConversations,
+                    );
+                  },
+                );
               }
             },
           ),
@@ -92,6 +107,7 @@ class _ChatPageState extends State<ChatPage> {
                                   Bot bot = Botlist.bots.firstWhere(
                                     (element) => element.id == selectBotId,
                                   );
+                                  print("Step 1: send message from chat page");
                                   chatChangeNotifier.sendMessage(
                                     controller.text,
                                     bot,
@@ -111,6 +127,45 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget buildHistoryDialog(
+    BuildContext context,
+    HistoryConversations historyItems,
+  ) {
+    return AlertDialog(
+      title: const Text('History'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: ListView.builder(
+          itemCount: historyItems.items.length,
+          itemBuilder: (context, index) {
+            final item = historyItems.items[index];
+            return ListTile(
+              title: Text(item.title),
+              subtitle: Text(
+                DateTime.tryParse(item.createdAt) != null
+                    ? "${DateTime.parse(item.createdAt).day.toString().padLeft(2, '0')}/"
+                        "${DateTime.parse(item.createdAt).month.toString().padLeft(2, '0')}/"
+                        "${DateTime.parse(item.createdAt).year} "
+                        "${DateTime.parse(item.createdAt).hour.toString().padLeft(2, '0')}:"
+                        "${DateTime.parse(item.createdAt).minute.toString().padLeft(2, '0')}"
+                    : item.createdAt,
+              ),
+              onTap: () {
+                // Handle history item tap
+              },
+            );
+          },
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
     );
   }
 

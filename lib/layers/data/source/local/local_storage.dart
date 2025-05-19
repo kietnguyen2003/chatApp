@@ -11,6 +11,8 @@ abstract class LocalStorage {
   Future<String?> getReFreshToken();
   Future<String?> getUserId();
   Future<bool> removeToken();
+  Future<bool> saveConversationId(String conversationId);
+  Future<String?> getConversationId();
 }
 
 class LocalStorageImpl implements LocalStorage {
@@ -84,5 +86,30 @@ class LocalStorageImpl implements LocalStorage {
       return false;
     }
     return true;
+  }
+
+  @override
+  Future<bool> saveConversationId(String conversationId) async {
+    try {
+      String? existingConversationId = _sharedPref.getString('conversationId');
+      if (existingConversationId == null) {
+        await _sharedPref.setString('conversationId', conversationId);
+      }
+
+      return true;
+    } catch (e) {
+      print('Error saving conversation ID: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<String?> getConversationId() async {
+    try {
+      return _sharedPref.getString('conversationId');
+    } catch (e) {
+      print('Error retrieving conversation ID: $e');
+      return null;
+    }
   }
 }

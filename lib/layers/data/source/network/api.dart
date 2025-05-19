@@ -6,6 +6,8 @@ abstract class Api {
     Map<String, dynamic> body, {
     Map<String, dynamic>? headers,
   });
+
+  Future<Map<String, dynamic>> get(String url, {Map<String, dynamic>? headers});
 }
 
 class ApiImpl implements Api {
@@ -18,6 +20,8 @@ class ApiImpl implements Api {
           clientKey ?? 'pck_tqsy29b64a585km2g4wnpc57ypjprzzdch8xzpq0xhayr',
       'Content-Type': 'application/json',
     };
+    _dio.options.connectTimeout = Duration(seconds: 30); // Timeout kết nối
+    _dio.options.receiveTimeout = Duration(seconds: 30); // Timeout nhận dữ liệu
   }
 
   @override
@@ -26,10 +30,46 @@ class ApiImpl implements Api {
     Map<String, dynamic> body, {
     Map<String, dynamic>? headers,
   }) async {
+    print('Body: $body');
+    print('URL: $url');
     if (headers != null) {
       _dio.options.headers.addAll(headers);
     }
-    final response = await _dio.post(url, data: body);
+    print("Final headers: ${_dio.options.headers}");
+    try {
+      final response = await _dio.post(url, data: body);
+      print('Response from API: ${response.data}');
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception(
+          'Failed to load data: ${response.statusCode} ${response.data['message'] ?? ''}',
+        );
+      }
+    } catch (e) {
+      print('Error in API post: $e'); // Thêm log để debug
+      if (e is DioException && e.response != null) {
+        print(
+          'DioException details: ${e.response?.data}, ${e.response?.statusCode}',
+        );
+        throw Exception(
+          'Failed to send message: ${e.response?.data['message'] ?? e.message}',
+        );
+      }
+      throw Exception('Failed to send message: $e');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> get(
+    String url, {
+    Map<String, dynamic>? headers,
+  }) async {
+    if (headers != null) {
+      _dio.options.headers.addAll(headers);
+    }
+    final response = await _dio.get(url);
+    print('Response from API: ${response.data}');
     if (response.statusCode == 200) {
       return response.data;
     } else {
