@@ -19,26 +19,21 @@ class Conversation {
     if (bot.id.isEmpty) {
       throw Exception('Bot ID cannot be empty');
     }
-    print("Step 3: send message at use case: $message");
     MessageResponse response = await _conversationRepository.sendMessage(
       message,
       bot,
       messages,
     );
-    print('Response from use case: ${response.message}');
     if (response.message.isEmpty) {
       throw Exception('Response message cannot be empty');
     }
     return response;
   }
 
-  Future<HistoryConversations> getHistoryConversationss(
-    String assistantId,
-  ) async {
+  Future<HistoryConversations> getConversationList(String assistantId) async {
     if (assistantId.isEmpty) {
       throw Exception('Assistant ID cannot be empty');
     }
-    print('Assistant ID: $assistantId at use case');
     HistoryConversations history = await _conversationRepository
         .getHistoryConversations(assistantId);
     if (history.items.isEmpty) {

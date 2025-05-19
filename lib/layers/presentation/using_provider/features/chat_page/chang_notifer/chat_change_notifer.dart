@@ -34,13 +34,11 @@ class ChatChangeNotifer extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      print("Step 2: send message at notifier: $message");
       final response = await _conversationUseCase.sendMessage(
         message,
         bot,
         _messages,
       );
-      print('Response from use case: ${response.message}');
       if (response.message.isNotEmpty) {
         _messages.add(
           Message(
@@ -55,7 +53,6 @@ class ChatChangeNotifer extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      print('Error in sendMessage: $e'); // Thêm log để debug
       if (e is DioException) {
         print(
           'DioException details: ${e.response?.data}, ${e.response?.statusCode}',
@@ -74,21 +71,13 @@ class ChatChangeNotifer extends ChangeNotifier {
   }
 
   Future<void> getHistoryConversations(String assistantId) async {
-    print('Fetching history conversations...');
     _isLoading = true;
     try {
-      final response = await _conversationUseCase.getHistoryConversationss(
+      final response = await _conversationUseCase.getConversationList(
         assistantId,
       );
-      print('Response at notifier: ${response}');
-      if (response != null) {
-        _isLoading = false;
-        _historyConversations = response;
-
-        print('History conversations fetched successfully');
-      } else {
-        throw Exception('Failed to fetch history conversations');
-      }
+      _isLoading = false;
+      _historyConversations = response;
     } catch (e) {
       _error = 'Error fetching history: $e';
       notifyListeners();

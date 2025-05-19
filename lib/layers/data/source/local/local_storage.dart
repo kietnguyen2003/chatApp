@@ -40,7 +40,6 @@ class LocalStorageImpl implements LocalStorage {
       await _sharedPref.setString(cachedUserIdKey, userId);
       return true;
     } catch (e) {
-      // Sử dụng logger thay vì print
       return false;
     }
   }
@@ -50,7 +49,6 @@ class LocalStorageImpl implements LocalStorage {
     try {
       return _sharedPref.getString(cachedAccessTokenKey);
     } catch (e) {
-      print('Error retrieving token: $e');
       return null;
     }
   }
@@ -60,7 +58,6 @@ class LocalStorageImpl implements LocalStorage {
     try {
       return _sharedPref.getString(cachedRefreshTokenKey);
     } catch (e) {
-      print('Error retrieving token: $e');
       return null;
     }
   }
@@ -70,7 +67,6 @@ class LocalStorageImpl implements LocalStorage {
     try {
       return _sharedPref.getString(cachedUserIdKey);
     } catch (e) {
-      print('Error retrieving token: $e');
       return null;
     }
   }
@@ -82,7 +78,6 @@ class LocalStorageImpl implements LocalStorage {
       await _sharedPref.remove(cachedRefreshTokenKey);
       await _sharedPref.remove(cachedUserIdKey);
     } catch (e) {
-      print('Error removing tokens: $e');
       return false;
     }
     return true;
@@ -98,7 +93,6 @@ class LocalStorageImpl implements LocalStorage {
 
       return true;
     } catch (e) {
-      print('Error saving conversation ID: $e');
       return false;
     }
   }
@@ -108,7 +102,6 @@ class LocalStorageImpl implements LocalStorage {
     try {
       return _sharedPref.getString('conversationId');
     } catch (e) {
-      print('Error retrieving conversation ID: $e');
       return null;
     }
   }

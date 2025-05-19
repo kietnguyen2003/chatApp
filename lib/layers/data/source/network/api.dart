@@ -30,15 +30,11 @@ class ApiImpl implements Api {
     Map<String, dynamic> body, {
     Map<String, dynamic>? headers,
   }) async {
-    print('Body: $body');
-    print('URL: $url');
     if (headers != null) {
       _dio.options.headers.addAll(headers);
     }
-    print("Final headers: ${_dio.options.headers}");
     try {
       final response = await _dio.post(url, data: body);
-      print('Response from API: ${response.data}');
       if (response.statusCode == 200) {
         return response.data;
       } else {
@@ -47,7 +43,6 @@ class ApiImpl implements Api {
         );
       }
     } catch (e) {
-      print('Error in API post: $e'); // Thêm log để debug
       if (e is DioException && e.response != null) {
         print(
           'DioException details: ${e.response?.data}, ${e.response?.statusCode}',
@@ -69,7 +64,6 @@ class ApiImpl implements Api {
       _dio.options.headers.addAll(headers);
     }
     final response = await _dio.get(url);
-    print('Response from API: ${response.data}');
     if (response.statusCode == 200) {
       return response.data;
     } else {
