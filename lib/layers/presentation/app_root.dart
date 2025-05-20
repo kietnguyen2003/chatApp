@@ -1,4 +1,4 @@
-import 'package:chat_app/layers/presentation/using_provider/app_using_provider.dart';
+import 'package:chat_app/layers/presentation/using_bloc/app_using_bloc.dart';
 import 'package:chat_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:toastification/toastification.dart';
@@ -17,7 +17,7 @@ class _AppRootState extends State<AppRoot> {
   void initState() {
     super.initState();
     // sử dụng architecture nào;
-    _currentOption = StateManagementOptions.provider;
+    _currentOption = StateManagementOptions.bloc;
     // khởi tạo api;
     // final api = ApiIml();
   }
@@ -30,9 +30,12 @@ class _AppRootState extends State<AppRoot> {
         title: 'Chat App',
         theme: ThemeData(primarySwatch: Colors.blue),
         home:
-            _currentOption == StateManagementOptions.provider
-                ? const AppUsingProvider()
-                : const Placeholder(), // Chuyển đổi giữa các ứng dụng dựa trên lựa chọn
+            // _currentOption == StateManagementOptions.provider
+            //     ? const AppUsingProvider()
+            //     : const Placeholder(), // Chuyển đổi giữa các ứng dụng dựa trên lựa chọn
+            _currentOption == StateManagementOptions.bloc
+                ? const AppUsingBloc() // Chuyển đổi giữa các ứng dụng dựa trên lựa chọn
+                : const Placeholder(),
       ),
     );
   }

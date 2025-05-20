@@ -14,13 +14,13 @@ Widget customTextField({
     decoration: InputDecoration(
       hintText: labelText,
       hintStyle: const TextStyle(color: Colors.black, fontSize: 16),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide(color: Colors.grey.shade400),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide(color: color, width: 2),
       ),
     ),

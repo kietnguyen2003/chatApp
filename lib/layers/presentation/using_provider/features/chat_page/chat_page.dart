@@ -107,7 +107,6 @@ class _ChatPageState extends State<ChatPage> {
                                   Bot bot = Botlist.bots.firstWhere(
                                     (element) => element.id == selectBotId,
                                   );
-                                  print("Step 1: send message from chat page");
                                   chatChangeNotifier.sendMessage(
                                     controller.text,
                                     bot,
