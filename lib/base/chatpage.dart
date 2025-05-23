@@ -73,8 +73,6 @@ Widget _BuildChatField(
                 isUser: IsUser.bot,
                 name: 'Bot',
               );
-              print(controller.text);
-
               // Add messages to the list
               messages.add(userMessage);
               messages.add(botMessage);

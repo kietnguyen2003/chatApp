@@ -1,13 +1,18 @@
 import 'package:chat_app/layers/data/source/local/botList.dart';
 import 'package:chat_app/layers/domain/entity/bot.dart';
 import 'package:chat_app/layers/domain/entity/messeage.dart';
+import 'package:chat_app/layers/presentation/using_bloc/features/auth/cubit/auth_cubit_cubit.dart';
 import 'package:chat_app/layers/presentation/using_bloc/features/chat/cubit/chatcubit_cubit.dart';
 import 'package:chat_app/layers/presentation/widget/TextField.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:toastification/toastification.dart';
 
 class ChatCubitPage extends StatefulWidget {
-  const ChatCubitPage({super.key});
+  final String accessToken;
+  final String refreshToken;
+  const ChatCubitPage(this.accessToken, this.refreshToken, {super.key});
 
   @override
   State<ChatCubitPage> createState() => _ChatCubitPageState();
@@ -19,6 +24,7 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
   bool _isLoadingDialogShown = false;
   List<Message> _currentMessages = [];
   String _selectedBotId = 'claude-3-haiku-20240307';
+  String? _currentConversationId;
 
   @override
   void dispose() {
@@ -35,9 +41,9 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
         children: [
           _buildHeader(),
           Expanded(
-            child: BlocConsumer<ChatcubitCubit, ChatcubitState>(
+            child: BlocConsumer<ChatCubit, ChatState>(
               listener: (context, state) {
-                if (state is ChatcubitLoading && !_isLoadingDialogShown) {
+                if (state is ChatLoading && !_isLoadingDialogShown) {
                   _isLoadingDialogShown = true;
                   showDialog(
                     context: context,
@@ -54,26 +60,34 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
                           ),
                         ),
                   );
-                } else if (state is! ChatcubitLoading &&
-                    _isLoadingDialogShown) {
+                } else if (state is! ChatLoading && _isLoadingDialogShown) {
                   Navigator.of(context).pop();
                   _isLoadingDialogShown = false;
                 }
-                if (state is ChatcubitError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(state.error),
-                      backgroundColor: Colors.red,
-                    ),
+                if (state is ChatError) {
+                  String errorMessage = state.error;
+                  toastification.show(
+                    context: context,
+                    title: Text(errorMessage),
+                    type: ToastificationType.info,
+                    autoCloseDuration: const Duration(seconds: 5),
                   );
                 }
-                if (state is ChatcubitMessage) {
+                if (state is ChatMessage) {
                   _currentMessages = state.message;
                 }
-                if (state is ChatcubitBotChanged) {
+                if (state is ChatBotChanged) {
                   setState(() {
                     _selectedBotId = state.botId;
                   });
+                }
+                if (state is ChatUnauthorized) {
+                  context.read<AuthCubitCubit>().logout();
+                }
+                if (state is ChatConversationId) {
+                  _currentConversationId = state.currentId;
+                  print('Current Conversation ID: ${state.currentId}');
+                  print('Usage Token: ${state.usageToken}');
                 }
               },
               builder: (context, state) {
@@ -88,13 +102,13 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
               },
             ),
           ),
-          _BuildChatField(messageController, context),
+          _buildChatField(messageController, context),
         ],
       ),
     );
   }
 
-  Widget _BuildChatField(
+  Widget _buildChatField(
     TextEditingController controller,
     BuildContext context,
   ) {
@@ -107,21 +121,66 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
       child: Row(
         children: [
           Expanded(
-            child: customTextField(
-              controller: controller,
-              labelText: labelText,
-              color: color,
-              obscureText: obscureText,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Column(
+                      children: [
+                        BlocSelector<ChatCubit, ChatState, int>(
+                          selector: (state) {
+                            print(
+                              'BlocSelector state: $state',
+                            ); // Debug trạng thái
+                            return state is ChatConversationId
+                                ? state.usageToken
+                                : 30;
+                          },
+                          builder: (context, usageToken) {
+                            print(
+                              'BlocSelector usageToken: $usageToken',
+                            ); // Debug usageToken
+                            return Column(
+                              children: [
+                                Text(
+                                  'Usage: $usageToken',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    IconButton(onPressed: () {}, icon: Icon(Icons.add)),
+                  ],
+                ),
+                customTextField(
+                  controller: controller,
+                  labelText: labelText,
+                  color: color,
+                  obscureText: obscureText,
+                  icon: IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: () {
+                      if (controller.text.isNotEmpty) {
+                        context.read<ChatCubit>().sendMessage(
+                          controller.text,
+                          _selectedBotId,
+                          widget.accessToken,
+                          _currentConversationId,
+                        );
+                        controller.clear();
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.send),
-            onPressed: () {
-              if (controller.text.isNotEmpty) {
-                context.read<ChatcubitCubit>().sendMessage(controller.text);
-                controller.clear();
-              }
-            },
           ),
         ],
       ),
@@ -162,13 +221,34 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
                     : Colors.grey[300],
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(
-            message.message,
-            style: TextStyle(
-              color:
-                  message.isUser == IsUser.sender
-                      ? Colors.black
-                      : Colors.black87,
+          child: MarkdownBody(
+            data: message.message,
+            styleSheet: MarkdownStyleSheet(
+              h1: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              h2: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              strong: const TextStyle(fontWeight: FontWeight.bold),
+              p: TextStyle(
+                color:
+                    message.isUser == IsUser.sender
+                        ? Colors.black
+                        : Colors.black87,
+                fontSize: 14,
+              ),
+              listBullet: TextStyle(
+                color:
+                    message.isUser == IsUser.sender
+                        ? Colors.black
+                        : Colors.black87,
+                fontSize: 14,
+              ),
             ),
           ),
         ),
@@ -225,14 +305,14 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            BlocBuilder<ChatcubitCubit, ChatcubitState>(
+            BlocBuilder<ChatCubit, ChatState>(
               builder: (context, state) {
                 String botId = _selectedBotId;
-                if (state is ChatcubitBotChanged) {
+                if (state is ChatBotChanged) {
                   botId = state.botId;
                 }
                 return _buildSeletor('Select Bot', botId, (value) {
-                  context.read<ChatcubitCubit>().changeBot(value);
+                  context.read<ChatCubit>().changeBot(value);
                 });
               },
             ),

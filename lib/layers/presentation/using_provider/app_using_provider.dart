@@ -42,9 +42,8 @@ class AppUsingProvider extends StatelessWidget {
       ],
       child: Consumer2<AuthChangeNotifier, ChatChangeNotifer>(
         builder: (context, auth, chat, _) {
-          final token = main_app.sharedPref.getString('cachedAccessTokenKey');
-          if (token != null && auth.auth != null) {
-            return const ChatPage();
+          if (auth.auth != null) {
+            return ChatPage(auth.auth!);
           } else {
             return const LoginPage();
           }

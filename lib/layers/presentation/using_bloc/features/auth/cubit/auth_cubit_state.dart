@@ -1,17 +1,17 @@
 part of 'auth_cubit_cubit.dart';
 
-sealed class AuthCubitState extends Equatable {
+abstract class AuthCubitState extends Equatable {
   const AuthCubitState();
 
   @override
   List<Object> get props => [];
 }
 
-final class AuthCubitInitial extends AuthCubitState {}
+class AuthCubitInitial extends AuthCubitState {}
 
-final class AuthCubitLoading extends AuthCubitState {}
+class AuthCubitLoading extends AuthCubitState {}
 
-final class AuthCubitSuccess extends AuthCubitState {
+class AuthCubitSuccess extends AuthCubitState {
   final String message;
 
   const AuthCubitSuccess(this.message);
@@ -20,7 +20,7 @@ final class AuthCubitSuccess extends AuthCubitState {
   List<Object> get props => [message];
 }
 
-final class AuthCubitError extends AuthCubitState {
+class AuthCubitError extends AuthCubitState {
   final String error;
 
   const AuthCubitError(this.error);
@@ -29,12 +29,11 @@ final class AuthCubitError extends AuthCubitState {
   List<Object> get props => [error];
 }
 
-final class AuthCubitLoggedIn extends AuthCubitState {
-  final String accessToken;
-  final String refreshToken;
+class AuthCubitLoggedIn extends AuthCubitState {
+  final Auth auth;
 
-  const AuthCubitLoggedIn(this.accessToken, this.refreshToken);
+  const AuthCubitLoggedIn(this.auth);
 
   @override
-  List<Object> get props => [accessToken, refreshToken];
+  List<Object> get props => [auth];
 }

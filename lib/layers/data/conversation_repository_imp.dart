@@ -24,13 +24,11 @@ class ConversationRepositoryImp extends ConversationRepository {
     String message,
     Bot bot,
     List<Message> messages,
+    String accessToken,
+    String? currentConversationId,
   ) async {
     try {
       final List<MessageRequest> messageRequests;
-      String? conversationId = await _localStorage.getConversationId();
-      if (conversationId == null) {
-        throw Exception('No conversation ID found');
-      }
       if (messages.isNotEmpty) {
         messageRequests =
             messages
@@ -46,10 +44,7 @@ class ConversationRepositoryImp extends ConversationRepository {
       } else {
         messageRequests = [];
       }
-      final accessToken = await _localStorage.getAccessToken();
-      if (accessToken == null) {
-        throw Exception('No access token found');
-      }
+
       messages.add(
         Message(message: message, isUser: IsUser.sender, name: "User"),
       );
@@ -62,7 +57,7 @@ class ConversationRepositoryImp extends ConversationRepository {
             'metadata': {
               'conversation': {
                 'messages': messageRequests.map((e) => e.toJson()).toList(),
-                'id': conversationId,
+                'id': currentConversationId,
               },
             },
             'assistant': {'id': bot.id, 'name': bot.name, 'model': bot.model},
@@ -76,14 +71,12 @@ class ConversationRepositoryImp extends ConversationRepository {
         if (messageResponse.message.isEmpty) {
           throw Exception('Response message cannot be empty');
         }
-        bool isSuccess = await _localStorage.saveConversationId(
-          messageResponse.conversationId,
-        );
-        if (!isSuccess) {
-          throw Exception('Failed to save conversation ID');
-        }
+        currentConversationId ??= messageResponse.conversationId;
         return messageResponse.toDomain();
       } catch (e) {
+        if (e is UnauthorizedException) {
+          rethrow;
+        }
         if (e is DioException && e.response != null) {
           throw Exception(
             'Failed to send message: ${e.response?.data['message'] ?? e.message}',
@@ -92,6 +85,9 @@ class ConversationRepositoryImp extends ConversationRepository {
         throw Exception('Failed to send message: $e');
       }
     } catch (e) {
+      if (e is UnauthorizedException) {
+        throw e; // Truyền lỗi Unauthorized lên trên
+      }
       if (e is DioException && e.response != null) {
         throw Exception(
           'Failed to send message: ${e.response?.data['message'] ?? e.message}',
@@ -120,6 +116,9 @@ class ConversationRepositoryImp extends ConversationRepository {
       final historyConversations = historyConversationsDTO.toDomain();
       return historyConversations;
     } catch (e) {
+      if (e is UnauthorizedException) {
+        throw e;
+      }
       if (e is DioException && e.response != null) {
         throw Exception(
           'Failed to get history conversations: ${e.response?.data['message'] ?? e.message}',

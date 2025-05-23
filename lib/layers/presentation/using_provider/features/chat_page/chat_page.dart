@@ -1,4 +1,5 @@
 import 'package:chat_app/layers/data/source/local/botList.dart';
+import 'package:chat_app/layers/domain/entity/auth.dart';
 import 'package:chat_app/layers/domain/entity/bot.dart';
 import 'package:chat_app/layers/domain/entity/conversation.dart';
 import 'package:chat_app/layers/domain/entity/messeage.dart';
@@ -9,7 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+  final Auth auth;
+  const ChatPage(this.auth, {super.key});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -107,9 +109,11 @@ class _ChatPageState extends State<ChatPage> {
                                   Bot bot = Botlist.bots.firstWhere(
                                     (element) => element.id == selectBotId,
                                   );
+
                                   chatChangeNotifier.sendMessage(
                                     controller.text,
                                     bot,
+                                    widget.auth.accessToken ?? '',
                                   );
                                   controller.clear();
                                 }

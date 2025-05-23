@@ -7,6 +7,7 @@ Widget customTextField({
   required Color color,
   required bool obscureText,
   FormFieldValidator<String>? validate,
+  IconButton? icon,
 }) {
   return FormBuilderTextField(
     name: labelText.toLowerCase(),
@@ -23,6 +24,7 @@ Widget customTextField({
         borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide(color: color, width: 2),
       ),
+      suffixIcon: icon,
     ),
     obscureText: obscureText,
     validator: validate,

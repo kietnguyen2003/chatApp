@@ -30,14 +30,6 @@ class AuthChangeNotifier extends ChangeNotifier {
     notifyListeners();
     try {
       _auth = await _loginUseCase.login(email, password);
-      if (_auth != null) {
-        final isSaved = await _localStorage.saveToken(_auth!);
-        if (!isSaved) {
-          _error = 'Failed to save token';
-        }
-      } else {
-        _error = 'Login failed: No auth data received';
-      }
     } catch (e) {
       if (e is DioException) {
         if (e.response?.statusCode == 401) {

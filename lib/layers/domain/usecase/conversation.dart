@@ -12,6 +12,8 @@ class Conversation {
     String message,
     Bot bot,
     List<Message> messages,
+    String accessToken,
+    String? currentConversationId,
   ) async {
     if (message.isEmpty) {
       throw Exception('Message cannot be empty');
@@ -23,6 +25,8 @@ class Conversation {
       message,
       bot,
       messages,
+      accessToken,
+      currentConversationId,
     );
     if (response.message.isEmpty) {
       throw Exception('Response message cannot be empty');

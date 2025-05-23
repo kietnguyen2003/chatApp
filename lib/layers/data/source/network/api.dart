@@ -1,5 +1,10 @@
 import 'package:dio/dio.dart';
 
+class UnauthorizedException implements Exception {
+  final String message;
+  UnauthorizedException(this.message);
+}
+
 abstract class Api {
   Future<Map<String, dynamic>> post(
     String url,
@@ -20,8 +25,8 @@ class ApiImpl implements Api {
           clientKey ?? 'pck_tqsy29b64a585km2g4wnpc57ypjprzzdch8xzpq0xhayr',
       'Content-Type': 'application/json',
     };
-    _dio.options.connectTimeout = Duration(seconds: 30); // Timeout kết nối
-    _dio.options.receiveTimeout = Duration(seconds: 30); // Timeout nhận dữ liệu
+    _dio.options.connectTimeout = Duration(seconds: 30);
+    _dio.options.receiveTimeout = Duration(seconds: 30);
   }
 
   @override
@@ -37,16 +42,29 @@ class ApiImpl implements Api {
       final response = await _dio.post(url, data: body);
       if (response.statusCode == 200) {
         return response.data;
+      } else if (response.statusCode == 401) {
+        throw UnauthorizedException(
+          response.data['message'] ?? 'Unauthorized: Invalid or expired token',
+        );
       } else {
         throw Exception(
           'Failed to load data: ${response.statusCode} ${response.data['message'] ?? ''}',
         );
       }
     } catch (e) {
+      if (e is UnauthorizedException) {
+        throw e; // Truyền lỗi Unauthorized lên trên
+      }
       if (e is DioException && e.response != null) {
         print(
           'DioException details: ${e.response?.data}, ${e.response?.statusCode}',
         );
+        if (e.response?.statusCode == 401) {
+          throw UnauthorizedException(
+            e.response?.data['message'] ??
+                'Unauthorized: Invalid or expired token',
+          );
+        }
         throw Exception(
           'Failed to send message: ${e.response?.data['message'] ?? e.message}',
         );
@@ -66,6 +84,10 @@ class ApiImpl implements Api {
     final response = await _dio.get(url);
     if (response.statusCode == 200) {
       return response.data;
+    } else if (response.statusCode == 401) {
+      throw UnauthorizedException(
+        response.data['message'] ?? 'Unauthorized: Invalid or expired token',
+      );
     } else {
       throw Exception(
         'Failed to load data: ${response.statusCode} ${response.data['message'] ?? ''}',

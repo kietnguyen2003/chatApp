@@ -21,12 +21,11 @@ class AppUsingBloc extends StatelessWidget {
           create:
               (_) => AuthCubitCubit(
                 authRepository: AuthRepositoryImpl(api: ApiImpl()),
-                sharedPreferences: main_app.sharedPref,
               ),
         ),
         BlocProvider(
           create:
-              (_) => ChatcubitCubit(
+              (_) => ChatCubit(
                 conversationUseCase: Conversation(
                   conversationRepository: ConversationRepositoryImp(
                     sharedPreferences: main_app.sharedPref,
@@ -49,11 +48,16 @@ class AppUsingBloc extends StatelessWidget {
           }
         },
         builder: (context, state) {
+          print('AppUsingBloc: Building with state - $state');
           if (state is AuthCubitLoggedIn) {
-            return const ChatCubitPage();
-          } else {
+            return ChatCubitPage(
+              state.auth.accessToken ?? "",
+              state.auth.refreshToken ?? "",
+            );
+          } else if (state is AuthCubitInitial) {
             return const LoginBlocPage();
           }
+          return const LoginBlocPage();
         },
       ),
     );

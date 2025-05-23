@@ -1,4 +1,6 @@
 import 'package:chat_app/layers/data/source/local/local_storage.dart';
+import 'package:chat_app/layers/data/source/network/api.dart';
+import 'package:chat_app/layers/domain/entity/auth.dart';
 import 'package:chat_app/layers/domain/entity/bot.dart';
 import 'package:chat_app/layers/domain/entity/conversation.dart';
 import 'package:chat_app/layers/domain/entity/messeage.dart';
@@ -11,6 +13,7 @@ class ChatChangeNotifer extends ChangeNotifier {
   final LocalStorage _localStorage;
   final Conversation _conversationUseCase;
   final List<Message> _messages = [];
+  String? _currentConversationId;
   HistoryConversations _historyConversations = HistoryConversations(
     items: [],
     hasMore: false,
@@ -22,6 +25,7 @@ class ChatChangeNotifer extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   HistoryConversations get historyConversations => _historyConversations;
+  String? get currentConversationId => _currentConversationId;
 
   ChatChangeNotifer({
     required Conversation conversationUseCase,
@@ -29,7 +33,7 @@ class ChatChangeNotifer extends ChangeNotifier {
   }) : _conversationUseCase = conversationUseCase,
        _localStorage = LocalStorageImpl(sharedPreferences: sharedPreferences);
 
-  Future<void> sendMessage(String message, Bot bot) async {
+  Future<void> sendMessage(String message, Bot bot, String accessToken) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -38,6 +42,8 @@ class ChatChangeNotifer extends ChangeNotifier {
         message,
         bot,
         _messages,
+        accessToken,
+        _currentConversationId,
       );
       if (response.message.isNotEmpty) {
         _messages.add(
@@ -53,6 +59,10 @@ class ChatChangeNotifer extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
+      if (e is UnauthorizedException) {
+        print('UnauthorizedException: ${e.message}');
+        _error = 'Unauthorized: ${e.message}';
+      }
       if (e is DioException) {
         print(
           'DioException details: ${e.response?.data}, ${e.response?.statusCode}',
