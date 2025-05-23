@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:chat_app/layers/data/source/local/botList.dart';
 import 'package:chat_app/layers/data/source/network/api.dart';
 import 'package:chat_app/layers/domain/entity/bot.dart';
+import 'package:chat_app/layers/domain/entity/conversation.dart';
 import 'package:chat_app/layers/domain/entity/messeage.dart';
 import 'package:chat_app/layers/domain/usecase/conversation.dart';
 import 'package:dio/dio.dart';
@@ -14,7 +15,7 @@ class ChatCubit extends Cubit<ChatState> {
   List<Message> _messages = [];
 
   final Conversation conversationUseCase;
-  ChatCubit({required this.conversationUseCase}) : super(ChatcubitInitial());
+  ChatCubit({required this.conversationUseCase}) : super(ChatInitial());
 
   Future<void> sendMessage(
     String message,
@@ -24,7 +25,6 @@ class ChatCubit extends Cubit<ChatState> {
   ) async {
     emit(ChatLoading());
     try {
-      // Gọi API để gửi tin nhắn
       Bot bot = Botlist.bots.firstWhere((bot) => bot.id == botId);
       final response = await conversationUseCase.sendMessage(
         message,
@@ -34,18 +34,19 @@ class ChatCubit extends Cubit<ChatState> {
         currentConversationId,
       );
 
-      // Tạo tin nhắn bot
       final botResponse = Message(
         message: response.message,
         isUser: IsUser.bot,
         name: 'Bot',
       );
-      emit(
-        ChatConversationId(response.conversationId, response.remainingUsage),
-      );
-      // Thêm phản hồi bot vào danh sách
       _messages = [..._messages, botResponse];
-      emit(ChatMessage(_messages));
+      emit(
+        ChatMessage(
+          _messages,
+          conversationId: response.conversationId,
+          usageToken: response.remainingUsage,
+        ),
+      );
     } catch (e) {
       if (e is UnauthorizedException) {
         emit(ChatUnauthorized(e.message));
@@ -54,23 +55,53 @@ class ChatCubit extends Cubit<ChatState> {
       } else {
         emit(ChatError(e.toString()));
       }
-      emit(ChatError(e.toString()));
     }
   }
 
-  // Hàm để khôi phục tin nhắn (nếu cần)
-  void restoreMessages(List<Message> messages) {
-    _messages = messages;
-    emit(ChatMessage(_messages));
+  Future<HistoryConversations> getConversationList(
+    String assistantId,
+    String accessToken,
+  ) async {
+    try {
+      final history = await conversationUseCase.getConversationList(
+        assistantId,
+        accessToken,
+      );
+      if (history.items.isEmpty) {
+        emit(ChatError('No conversations found'));
+        return history;
+      }
+      return history;
+    } catch (e) {
+      if (e is UnauthorizedException) {
+        emit(ChatUnauthorized(e.message));
+      } else if (e is DioException) {
+        emit(ChatError(e.message ?? 'Dio error'));
+      } else {
+        emit(ChatError(e.toString()));
+      }
+      rethrow;
+    }
   }
 
   // Hàm để reset danh sách tin nhắn (nếu cần)
   void resetMessages() {
     _messages = [];
-    emit(ChatcubitInitial());
+    emit(ChatInitial());
   }
 
   void changeBot(String botId) {
     emit(ChatBotChanged(botId));
+  }
+
+  void newConversation() {
+    _messages = [];
+    emit(
+      ChatMessage(
+        _messages,
+        conversationId: null,
+        usageToken: 30, // Giá trị mặc định khi tạo mới
+      ),
+    );
   }
 }

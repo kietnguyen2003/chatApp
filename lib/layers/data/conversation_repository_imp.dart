@@ -10,14 +10,9 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ConversationRepositoryImp extends ConversationRepository {
-  final LocalStorage _localStorage;
   final Api _api;
 
-  ConversationRepositoryImp({
-    required Api api,
-    required SharedPreferences sharedPreferences,
-  }) : _api = api,
-       _localStorage = LocalStorageImpl(sharedPreferences: sharedPreferences);
+  ConversationRepositoryImp({required Api api}) : _api = api;
 
   @override
   Future<MessageResponse> sendMessage(
@@ -86,7 +81,7 @@ class ConversationRepositoryImp extends ConversationRepository {
       }
     } catch (e) {
       if (e is UnauthorizedException) {
-        throw e; // Truyền lỗi Unauthorized lên trên
+        rethrow;
       }
       if (e is DioException && e.response != null) {
         throw Exception(
@@ -100,12 +95,9 @@ class ConversationRepositoryImp extends ConversationRepository {
   @override
   Future<HistoryConversations> getHistoryConversations(
     String assistantId,
+    String accessToken,
   ) async {
     try {
-      final accessToken = await _localStorage.getAccessToken();
-      if (accessToken == null) {
-        throw Exception('No access token found');
-      }
       final response = await _api.get(
         '${ApiUrls.aiChatHistory}?assistantId=$assistantId&assistantModel=dify',
         headers: {'Authorization': 'Bearer $accessToken'},
@@ -117,7 +109,7 @@ class ConversationRepositoryImp extends ConversationRepository {
       return historyConversations;
     } catch (e) {
       if (e is UnauthorizedException) {
-        throw e;
+        rethrow;
       }
       if (e is DioException && e.response != null) {
         throw Exception(

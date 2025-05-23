@@ -15,7 +15,6 @@ class AuthRepositoryImpl implements AuthRepository {
         'email': email,
         'password': password,
       });
-      print('Response: $response');
       final authDto = AuthDto.fromJson(response);
       return Auth(
         accessToken: authDto.token,

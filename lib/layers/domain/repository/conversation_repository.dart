@@ -7,8 +7,11 @@ abstract class ConversationRepository {
     String message,
     Bot bot,
     List<Message> messages,
-    String acccessToken,
+    String accessToken,
     String? currentConversationId,
   );
-  Future<HistoryConversations> getHistoryConversations(String assistantId);
+  Future<HistoryConversations> getHistoryConversations(
+    String assistantId,
+    String accessToken,
+  );
 }

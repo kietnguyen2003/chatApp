@@ -7,7 +7,7 @@ sealed class ChatState extends Equatable {
   List<Object> get props => [];
 }
 
-final class ChatcubitInitial extends ChatState {}
+final class ChatInitial extends ChatState {}
 
 final class ChatLoading extends ChatState {}
 
@@ -31,11 +31,13 @@ final class ChatError extends ChatState {
 
 final class ChatMessage extends ChatState {
   final List<Message> message;
+  final String? conversationId;
+  final int? usageToken;
 
-  const ChatMessage(this.message);
+  const ChatMessage(this.message, {this.conversationId, this.usageToken});
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [message, conversationId ?? '', usageToken ?? 0];
 }
 
 final class ChatBotChanged extends ChatState {
@@ -56,12 +58,12 @@ final class ChatUnauthorized extends ChatState {
   List<Object> get props => [message];
 }
 
-final class ChatConversationId extends ChatState {
-  final String currentId;
-  final int usageToken;
+// final class ChatConversationId extends ChatState {
+//   final String currentId;
+//   final int usageToken;
 
-  const ChatConversationId(this.currentId, this.usageToken);
+//   const ChatConversationId(this.currentId, this.usageToken);
 
-  @override
-  List<Object> get props => [currentId, usageToken];
-}
+//   @override
+//   List<Object> get props => [currentId, usageToken];
+// }

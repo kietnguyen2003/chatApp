@@ -34,12 +34,15 @@ class Conversation {
     return response;
   }
 
-  Future<HistoryConversations> getConversationList(String assistantId) async {
+  Future<HistoryConversations> getConversationList(
+    String assistantId,
+    String accessToken,
+  ) async {
     if (assistantId.isEmpty) {
       throw Exception('Assistant ID cannot be empty');
     }
     HistoryConversations history = await _conversationRepository
-        .getHistoryConversations(assistantId);
+        .getHistoryConversations(assistantId, accessToken);
     if (history.items.isEmpty) {
       throw Exception('No conversations found');
     }

@@ -1,5 +1,6 @@
 import 'package:chat_app/layers/data/source/local/botList.dart';
 import 'package:chat_app/layers/domain/entity/bot.dart';
+import 'package:chat_app/layers/domain/entity/conversation.dart';
 import 'package:chat_app/layers/domain/entity/messeage.dart';
 import 'package:chat_app/layers/presentation/using_bloc/features/auth/cubit/auth_cubit_cubit.dart';
 import 'package:chat_app/layers/presentation/using_bloc/features/chat/cubit/chatcubit_cubit.dart';
@@ -25,6 +26,7 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
   List<Message> _currentMessages = [];
   String _selectedBotId = 'claude-3-haiku-20240307';
   String? _currentConversationId;
+  int? _usageToken;
 
   @override
   void dispose() {
@@ -50,13 +52,17 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
                     barrierDismissible: false,
                     builder:
                         (context) => const AlertDialog(
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CircularProgressIndicator(),
-                              SizedBox(height: 16),
-                              Text('Loading...'),
-                            ],
+                          content: SizedBox(
+                            width: 120,
+                            height: 120,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(height: 16),
+                                Text('Loading...'),
+                              ],
+                            ),
                           ),
                         ),
                   );
@@ -75,6 +81,8 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
                 }
                 if (state is ChatMessage) {
                   _currentMessages = state.message;
+                  _currentConversationId = state.conversationId;
+                  _usageToken = state.usageToken;
                 }
                 if (state is ChatBotChanged) {
                   setState(() {
@@ -84,10 +92,10 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
                 if (state is ChatUnauthorized) {
                   context.read<AuthCubitCubit>().logout();
                 }
-                if (state is ChatConversationId) {
-                  _currentConversationId = state.currentId;
-                  print('Current Conversation ID: ${state.currentId}');
-                  print('Usage Token: ${state.usageToken}');
+                if (state is ChatInitial) {
+                  _currentMessages = [];
+                  _currentConversationId = null;
+                  _usageToken = null;
                 }
               },
               builder: (context, state) {
@@ -130,17 +138,13 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
                       children: [
                         BlocSelector<ChatCubit, ChatState, int>(
                           selector: (state) {
-                            print(
-                              'BlocSelector state: $state',
-                            ); // Debug trạng thái
-                            return state is ChatConversationId
-                                ? state.usageToken
-                                : 30;
+                            if (state is ChatMessage &&
+                                state.usageToken != null) {
+                              return state.usageToken!;
+                            }
+                            return 30; // Giá trị mặc định
                           },
                           builder: (context, usageToken) {
-                            print(
-                              'BlocSelector usageToken: $usageToken',
-                            ); // Debug usageToken
                             return Column(
                               children: [
                                 Text(
@@ -156,7 +160,80 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
                         ),
                       ],
                     ),
-                    IconButton(onPressed: () {}, icon: Icon(Icons.add)),
+                    IconButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (dialogContext) {
+                            return AlertDialog(
+                              title: const Text(
+                                'Do you want to start a new conversation?',
+                              ),
+                              content: const Text(
+                                'Are you sure you want to start a new conversation?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(dialogContext).pop();
+                                  },
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    context.read<ChatCubit>().newConversation();
+                                    Navigator.of(dialogContext).pop();
+                                  },
+                                  child: const Text('New'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      icon: Icon(Icons.add),
+                    ),
+                    IconButton(
+                      onPressed: () async {
+                        print('History button pressed');
+                        HistoryConversations history = await context
+                            .read<ChatCubit>()
+                            .getConversationList(
+                              _selectedBotId,
+                              widget.accessToken,
+                            );
+                        showDialog(
+                          context: context,
+                          builder: (dialogContext) {
+                            return AlertDialog(
+                              title: const Text('Conversation History'),
+                              content: SizedBox(
+                                width: 300,
+                                height: 400,
+                                child: ListView.builder(
+                                  itemCount: history.items.length,
+                                  itemBuilder: (context, index) {
+                                    final conversation = history.items[index];
+                                    return ListTile(
+                                      title: Text(conversation.title),
+                                      subtitle: Text(conversation.createdAt),
+                                      onTap: () {
+                                        // context.read<ChatCubit>().getHistory(
+                                        //   conversation.conversationId,
+                                        //   _selectedBotId,
+                                        // );
+                                        Navigator.of(dialogContext).pop();
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      icon: Icon(Icons.history),
+                    ),
                   ],
                 ),
                 customTextField(

@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatChangeNotifer extends ChangeNotifier {
-  final LocalStorage _localStorage;
   final Conversation _conversationUseCase;
   final List<Message> _messages = [];
   String? _currentConversationId;
@@ -27,11 +26,8 @@ class ChatChangeNotifer extends ChangeNotifier {
   HistoryConversations get historyConversations => _historyConversations;
   String? get currentConversationId => _currentConversationId;
 
-  ChatChangeNotifer({
-    required Conversation conversationUseCase,
-    required SharedPreferences sharedPreferences,
-  }) : _conversationUseCase = conversationUseCase,
-       _localStorage = LocalStorageImpl(sharedPreferences: sharedPreferences);
+  ChatChangeNotifer({required Conversation conversationUseCase})
+    : _conversationUseCase = conversationUseCase;
 
   Future<void> sendMessage(String message, Bot bot, String accessToken) async {
     _isLoading = true;
@@ -80,11 +76,15 @@ class ChatChangeNotifer extends ChangeNotifier {
     }
   }
 
-  Future<void> getHistoryConversations(String assistantId) async {
+  Future<void> getHistoryConversations(
+    String assistantId,
+    String accessToken,
+  ) async {
     _isLoading = true;
     try {
       final response = await _conversationUseCase.getConversationList(
         assistantId,
+        accessToken,
       );
       _isLoading = false;
       _historyConversations = response;
@@ -94,14 +94,14 @@ class ChatChangeNotifer extends ChangeNotifier {
     }
   }
 
-  Future<void> logout() async {
-    try {
-      await _localStorage.removeToken();
-      _messages.clear();
-      notifyListeners();
-    } catch (e) {
-      _error = 'Error logging out: $e';
-      notifyListeners();
-    }
-  }
+  // Future<void> logout() async {
+  //   try {
+  //     await _localStorage.removeToken();
+  //     _messages.clear();
+  //     notifyListeners();
+  //   } catch (e) {
+  //     _error = 'Error logging out: $e';
+  //     notifyListeners();
+  //   }
+  // }
 }

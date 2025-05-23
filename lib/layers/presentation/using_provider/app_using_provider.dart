@@ -24,7 +24,6 @@ class AppUsingProvider extends StatelessWidget {
                 loginUseCase: Login(
                   authRepository: AuthRepositoryImpl(api: ApiImpl()),
                 ),
-                sharedPreferences: main_app.sharedPref,
               ),
         ),
         ChangeNotifierProvider(
@@ -32,11 +31,9 @@ class AppUsingProvider extends StatelessWidget {
               (_) => ChatChangeNotifer(
                 conversationUseCase: Conversation(
                   conversationRepository: ConversationRepositoryImp(
-                    sharedPreferences: main_app.sharedPref,
                     api: ApiImpl(),
                   ),
                 ),
-                sharedPreferences: main_app.sharedPref,
               ),
         ),
       ],

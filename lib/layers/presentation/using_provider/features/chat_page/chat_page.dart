@@ -51,11 +51,15 @@ class _ChatPageState extends State<ChatPage> {
             },
             onSelected: (value) async {
               if (value == 1) {
-                chatChangeNotifier.logout();
+                // chatChangeNotifier.logout();
                 // Navigation handled in AppUsing tirProvider
               } else if (value == 2) {
-                await chatChangeNotifier.getHistoryConversations(selectBotId);
+                await chatChangeNotifier.getHistoryConversations(
+                  selectBotId,
+                  widget.auth.accessToken ?? '',
+                );
                 showDialog(
+                  // ignore: use_build_context_synchronously
                   context: context,
                   builder: (context) {
                     return buildHistoryDialog(

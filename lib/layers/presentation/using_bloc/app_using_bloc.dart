@@ -28,7 +28,6 @@ class AppUsingBloc extends StatelessWidget {
               (_) => ChatCubit(
                 conversationUseCase: Conversation(
                   conversationRepository: ConversationRepositoryImp(
-                    sharedPreferences: main_app.sharedPref,
                     api: ApiImpl(),
                   ),
                 ),
