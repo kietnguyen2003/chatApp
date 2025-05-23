@@ -1,13 +1,11 @@
 import 'package:chat_app/constrance/api.dart';
 import 'package:chat_app/layers/data/dto/conversation_dto.dart' as dto;
-import 'package:chat_app/layers/data/source/local/local_storage.dart';
 import 'package:chat_app/layers/data/source/network/api.dart';
 import 'package:chat_app/layers/domain/entity/bot.dart';
 import 'package:chat_app/layers/domain/entity/conversation.dart';
 import 'package:chat_app/layers/domain/entity/messeage.dart';
 import 'package:chat_app/layers/domain/repository/conversation_repository.dart';
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ConversationRepositoryImp extends ConversationRepository {
   final Api _api;

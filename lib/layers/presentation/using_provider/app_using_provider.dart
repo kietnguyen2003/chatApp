@@ -9,7 +9,6 @@ import 'package:chat_app/layers/presentation/using_provider/features/chat_page/c
 import 'package:chat_app/layers/presentation/using_provider/features/chat_page/chat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:chat_app/main.dart' as main_app;
 
 class AppUsingProvider extends StatelessWidget {
   const AppUsingProvider({super.key});

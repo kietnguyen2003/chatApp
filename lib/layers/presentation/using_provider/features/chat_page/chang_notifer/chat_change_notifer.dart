@@ -1,13 +1,10 @@
-import 'package:chat_app/layers/data/source/local/local_storage.dart';
 import 'package:chat_app/layers/data/source/network/api.dart';
-import 'package:chat_app/layers/domain/entity/auth.dart';
 import 'package:chat_app/layers/domain/entity/bot.dart';
 import 'package:chat_app/layers/domain/entity/conversation.dart';
 import 'package:chat_app/layers/domain/entity/messeage.dart';
 import 'package:chat_app/layers/domain/usecase/conversation.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatChangeNotifer extends ChangeNotifier {
   final Conversation _conversationUseCase;

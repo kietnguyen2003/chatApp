@@ -142,7 +142,7 @@ class _ChatCubitPageState extends State<ChatCubitPage> {
                                 state.usageToken != null) {
                               return state.usageToken!;
                             }
-                            return 30; // Giá trị mặc định
+                            return _usageToken ?? 30; // Giá trị mặc định
                           },
                           builder: (context, usageToken) {
                             return Column(

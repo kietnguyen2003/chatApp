@@ -8,7 +8,6 @@ import 'package:chat_app/layers/presentation/using_bloc/features/chat/chat_cubbi
 import 'package:chat_app/layers/presentation/using_bloc/features/chat/cubit/chatcubit_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:chat_app/main.dart' as main_app;
 
 class AppUsingBloc extends StatelessWidget {
   const AppUsingBloc({super.key});
